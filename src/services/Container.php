@@ -26,27 +26,29 @@ class Container {
                 $clazz = $sd['class'];
 
                 $args = [];
-                foreach ($sd['arguments'] as $arg) {
-                    if($arg['type'] == 'primitive') {
-                        $args[] = isset($arg['value']) ? $arg['value'] : $arg['id']; 
+                if(isset($sd['arguments'])) {
+                    foreach ($sd['arguments'] as $arg) {
+                        if($arg['type'] == 'primitive') {
+                            $args[] = isset($arg['value']) ? $arg['value'] : $arg['id']; 
+                        }
+                        else if($arg['type'] == 'json') {
+                            $args[] = json_decode(isset($arg['value']) ? $arg['value'] : $arg['id'], true);
+                        }
+                        else if($arg['type'] == 'param') {
+                            $args[] = isset($param[$arg['id']]) ? $param[$arg['id']] : null; //TODO fallback value
+                        }
+                        else if($arg['type'] == 'service') {
+                            $args[] = $this->get($arg['id'], $params);
+                        }
+                        else if($arg['type'] == 'class') {
+                            $r = new \ReflectionClass(isset($arg['class']) ? $arg['class'] : $arg['id']);
+                            $args[] = $r->newInstance();
+                        }
+                        else {
+                            throw new \Exception('unkown argument type: ' . $arg['type']);
+                        }    
                     }
-                    else if($arg['type'] == 'json') {
-                        $args[] = json_decode(isset($arg['value']) ? $arg['value'] : $arg['id'], true);
-                    }
-                    else if($arg['type'] == 'param') {
-                        $args[] = isset($param[$arg['id']]) ? $param[$arg['id']] : null; //TODO fallback value
-                    }
-                    else if($arg['type'] == 'service') {
-                        $args[] = $this->get($arg['id'], $params);
-                    }
-                    else if($arg['type'] == 'class') {
-                        $r = new \ReflectionClass(isset($arg['class']) ? $arg['class'] : $arg['id']);
-                        $args[] = $r->newInstance();
-                    }
-                    else {
-                        throw new \Exception('unkown argument type: ' . $arg['type']);
-                    }    
-                }
+                }                
 
                 $ref = new \ReflectionClass($clazz);
                 if(count($args) > 0) {

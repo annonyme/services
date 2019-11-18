@@ -17,3 +17,11 @@ Simple and easy to use PHP service-container with dependency injection.
     }
 }
 ```
+
+## Usage in PHP
+
+```
+$cont = Container::instance();
+$cont->addServiceDescriptor(json_decode(file_get_content('services.json'), true));
+$outer = $cont->get('testservice/outer');
+```
